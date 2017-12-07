@@ -4,7 +4,7 @@ import argparse
 import logging
 import sys
 
-from FileValidators import VCFValidator
+from VCF import VCFHelper, VCFAnnotationType, VCFRecoder, SnpEffVCFRecoder
 from Utils import configure_logging
 
 def configure_argparser(argparser_obj):
@@ -39,14 +39,23 @@ def configure_argparser(argparser_obj):
                                default=10,
                                help="Minimum read depth required to call variant genotype.")
 
-    # Path to recoded output file
+    # Character used to denote missing variant information
     argparser_obj.add_argument("--missing-data-char",
                                action="store",
                                type=str,
                                dest="missing_data_char",
                                required=True,
                                default='.',
-                               help="Minimum read depth required to call variant genotype.")
+                               help="Character used as placeholder for missing VCF info.")
+
+    # Character used to denote missing genotypes
+    argparser_obj.add_argument("--missing-gt-char",
+                               action="store",
+                               type=str,
+                               dest="missing_gt_char",
+                               required=True,
+                               default='NA',
+                               help="Character used as placeholder for missing genotypes.")
 
     # Path to recoded output file
     argparser_obj.add_argument("--output",
@@ -86,14 +95,35 @@ def main():
     out_file            = args.out_file
     min_call_depth      = args.min_call_depth
     missing_data_char   = args.missing_data_char
+    missing_gt_char     = args.missing_gt_char
 
     try:
 
         logging.debug("(Main) Starting to recode VCF file: %s" % vcf_file)
 
         # Check to make sure VCF file is valid
-        if not VCFValidator.is_valid(vcf_file):
+        if not VCFHelper.is_valid_vcf(vcf_file):
             raise IOError("Invalid VCF file!")
+
+        # Get correct VCFparser based on annotation type
+        vcf_recoder = None
+        vcf_anno_type = VCFHelper.get_annotation_type(vcf_file)
+        logging.debug("Detected VCF annotation type: '%s'" % vcf_anno_type)
+
+        if vcf_anno_type == VCFAnnotationType.ANNOVAR or vcf_anno_type == VCFAnnotationType.UNKNOWN:
+            # Get annovar/base VCFRecoder
+            vcf_recoder = VCFRecoder(vcf_file, min_call_depth = min_call_depth,
+                                     missing_data_char = missing_data_char,
+                                     missing_gt_char = missing_gt_char)
+
+        elif vcf_anno_type == VCFAnnotationType.SNPEFF:
+            # Get snpeff VCFRecoder
+            vcf_recoder = SnpEffVCFRecoder(vcf_file, min_call_depth = min_call_depth,
+                                           missing_data_char = missing_data_char,
+                                           missing_gt_char = missing_gt_char)
+
+        # Recode the VCF file and print output to stdout
+        vcf_recoder.recode_vcf()
 
         # Stuff goes here
         logging.debug("(Main) Successfully recoded VCF file to output: %s" % out_file)
