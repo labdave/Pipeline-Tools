@@ -1,13 +1,15 @@
 import logging
+import vcf
+from VCFAnnotationType import VCFAnnotationType
 
-class VCFValidator:
-    # Class for validating VCF file structure
+class VCFHelper:
+    # Collection of static functions relating to VCF files
 
     # Canoncial columns in the order they're supposed to appear in a VCF
     HEADER_FIELDS = ["CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT"]
 
     @staticmethod
-    def is_valid(path):
+    def is_valid_vcf(path):
 
         num_samples = 0
 
@@ -36,10 +38,10 @@ class VCFValidator:
                         line = line.split()
 
                         # Get the number of samples in the VCF
-                        num_samples = len(line) - len(VCFValidator.HEADER_FIELDS)
+                        num_samples = len(line) - len(VCFHelper.HEADER_FIELDS)
 
-                        expected_header_string  = "".join(VCFValidator.HEADER_FIELDS)
-                        actual_header_string    = "".join(line[0:len(VCFValidator.HEADER_FIELDS)])
+                        expected_header_string  = "".join(VCFHelper.HEADER_FIELDS)
+                        actual_header_string    = "".join(line[0:len(VCFHelper.HEADER_FIELDS)])
 
                         # Check to make sure the header fields are present in the correct order
                         if actual_header_string != expected_header_string:
@@ -60,10 +62,27 @@ class VCFValidator:
 
                     # Validate first record
                     line = line.split()
-                    if len(line) != num_samples + len(VCFValidator.HEADER_FIELDS):
+                    if len(line) != num_samples + len(VCFHelper.HEADER_FIELDS):
                         logging.error("Invalid VCF file format! First record did not contain the correct number of columns!")
                         return False
 
                     # Return True as VCF has been validated to the point that I give a shit about
                     logging.debug("VCF file is valid: %s" % path)
                     return True
+
+    @staticmethod
+    def get_annotation_type(path):
+        # Determine whether VCF file has been annotated by snpeff, annovar, or other
+        with open(path, 'r') as vcf_fh:
+            vcf_parser = vcf.Reader(vcf_fh)
+            if "ANNOVAR_DATE" in vcf_parser.infos.keys():
+                # Return 'annovar' if 'ANNOVAR_DATE' appears in VCF
+                return VCFAnnotationType.ANNOVAR
+
+            elif "ANN" in vcf_parser.infos.keys():
+                # See if 'ANN' field with description 'Functional Annotations' is present
+                desc = vcf_parser.infos["ANN"].desc
+                if desc.startswith("Functional annotations"):
+                    return VCFAnnotationType.SNPEFF
+            else:
+                return VCFAnnotationType.UNKNOWN
