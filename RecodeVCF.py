@@ -154,7 +154,7 @@ def main():
                                            missing_gt_char = missing_gt_char,
                                            multiallelic=multiallelic)
 
-        # Recode the VCF file and print output to stdout
+        # Recode the VCF file and write output to outfile
         vcf_recoder.recode_vcf()
 
         # Stuff goes here
