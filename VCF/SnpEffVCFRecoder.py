@@ -4,10 +4,10 @@ from VCFRecoder import VCFRecoder
 
 class SnpEffVCFRecoder(VCFRecoder):
 
-    def __init__(self, vcf_file, **kwargs):
+    def __init__(self, vcf_file, out_file, **kwargs):
 
         # Call super constructor
-        super(SnpEffVCFRecoder, self).__init__(vcf_file, **kwargs)
+        super(SnpEffVCFRecoder, self).__init__(vcf_file, out_file, **kwargs)
 
     def get_info_field_names(self):
         # Return SnpEff annotation fields
@@ -18,7 +18,8 @@ class SnpEffVCFRecoder(VCFRecoder):
                           "Are you sure this vcf was annotated with SnpEff?")
             raise IOError("Invalid SnpEff VCF!")
 
-        return self.parser.infos["ANN"].desc.split("'")[1].split("|")
+        data = self.parser.infos["ANN"].desc.split("'")[1].split("|")
+        return [x.strip() for x in data]
 
     def get_info_data(self, record):
         # Return only SnpEff annotations for a variant record
