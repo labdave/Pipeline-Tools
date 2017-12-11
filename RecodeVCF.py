@@ -38,13 +38,13 @@ def configure_argparser(argparser_obj):
                                required=True,
                                help="Path to recoded output file.")
 
-    argparser_obj.add_argument("--info-column-file",
+    argparser_obj.add_argument("--info-columns",
                                action="store",
-                               type=file_type,
-                               dest="info_column_file",
+                               type=str,
+                               dest="info_columns",
                                required=False,
                                default=None,
-                               help="Path to file containing INFO columns to include in output (One per line.)")
+                               help="Column-delimited list of INFO columns to include in output. NO SPACES ALLOWED or list will not be parsed!")
 
     # Path to recoded output file
     argparser_obj.add_argument("--min-call-depth",
@@ -94,6 +94,19 @@ def configure_argparser(argparser_obj):
                                     "2 = Errors + Warnings + Info\n"
                                     "3 = Errors + Warnings + Info + Debug")
 
+def parse_info_column_string(info_column_string):
+    # Parse info arguments to get a list of INFO columns to include
+    # Split on commas
+    info_columns = info_column_string.split(",")
+    # Remove any leading or trailing white space and remove any empty strings from list
+    info_columns = [x.strip() for x in info_columns if x != ""]
+
+    # Return None if list is empty once all bad values are removed
+    if len(info_columns) == 0:
+        return None
+
+    return info_columns
+
 def main():
 
     # Configure argparser
@@ -109,11 +122,15 @@ def main():
     # Get names of input/output files
     vcf_file                = args.vcf_file
     out_file                = args.out_file
-    info_column_file        = args.info_column_file
     min_call_depth          = args.min_call_depth
     missing_data_char       = args.missing_data_char
     missing_gt_char         = args.missing_gt_char
     multiallelic            = args.multiallelic
+    info_columns            = args.info_columns
+
+    # Get optinal list of info columns to include
+    if info_columns is not None:
+        info_columns = parse_info_column_string(info_columns)
 
     if multiallelic:
         # Throw warning about using the multiallelic mode
@@ -138,7 +155,7 @@ def main():
             # Get annovar/base VCFRecoder
             vcf_recoder = VCFRecoder(vcf_file,
                                      out_file,
-                                     info_column_file = info_column_file,
+                                     info_to_include = info_columns,
                                      min_call_depth = min_call_depth,
                                      missing_data_char = missing_data_char,
                                      missing_gt_char = missing_gt_char,
@@ -148,7 +165,7 @@ def main():
             # Get snpeff VCFRecoder
             vcf_recoder = SnpEffVCFRecoder(vcf_file,
                                            out_file,
-                                           info_column_file=info_column_file,
+                                           info_to_include=info_columns,
                                            min_call_depth = min_call_depth,
                                            missing_data_char = missing_data_char,
                                            missing_gt_char = missing_gt_char,

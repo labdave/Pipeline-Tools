@@ -25,24 +25,19 @@ class VCFRecoder(object):
         # Specify whether or not to allow more than one multiple allele
         self.multiallelic               = kwargs.get("multiallelic",        False)
 
-        # Path to file specifying info columns to include
+        # List of info columns names to include in output
         # If not specified, all info columns will be included
-        self.info_column_file           = kwargs.get("info_column_file",        None)
+        self.info_to_include            = kwargs.get("info_to_include",     None)
 
         # Initialize class variables
         logging.debug("Initializing VCF parser for file: %s" % self.vcf_file)
         self.parser         = vcf.Reader(open(self.vcf_file, "r"))
 
         # Names of columns to include (in the order they will appear in the recoded VCF)
-        self.fixed_columns  = ["CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER"]    # Names of columns that are fixed across VCF files
-        self.info_columns   = self.get_info_field_names()                               # Names of INFO columns declared in metadata section
-        self.sample_names   = self.parser.samples                                       # Names of samples included in current VCF
-
-        # Parse file to get names of INFO columns to include in output
-        self.info_to_include    = self.__parse_info_to_include_file()
-
-        # Indices of INFO columns to include in output
-        self.info_include_cols  = None
+        self.fixed_columns      = ["CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER"]    # Names of columns that are fixed across VCF files
+        self.info_columns       = self.get_info_field_names()                               # Names of INFO columns declared in metadata section
+        self.sample_names       = self.parser.samples                                       # Names of samples included in current VCF
+        self.info_include_cols  = None                                                      # Indices of INFO columns to include in output
 
         # Subset info to include if selecting only certain INFO columns
         logging.debug("INFO columns available in VCF:\n%s" % self.info_columns)
@@ -129,15 +124,15 @@ class VCFRecoder(object):
         data.append(record.QUAL if record.QUAL is not None else self.missing_data_char)
 
         # Add filter information
-        filter = self.missing_data_char if record.FILTER is None else record.FILTER
+        filter_data = self.missing_data_char if record.FILTER is None else record.FILTER
 
         # Do additional check (Really only used for MUTECT output)
-        if isinstance(filter, list):
-            if len(filter) == 0:
-                filter = "PASSED"
+        if isinstance(filter_data, list):
+            if len(filter_data) == 0:
+                filter_data = "PASSED"
             else:
-                filter = ",".join(filter)
-        data.append(filter)
+                filter_data = ",".join(filter_data)
+        data.append(filter_data)
 
         # Return fixed data values
         return data
@@ -229,30 +224,6 @@ class VCFRecoder(object):
         if len(missing_columns) != 0:
             logging.error("INFO file error! The following INFO columns were requested but don't actually appear in the VCF:\n%s"% missing_columns)
             raise IOError("Onoe or more INFO columns specified in the info-to-include file doesn't appear in the VCF!")
-
-    def __parse_info_to_include_file(self):
-        # Parse include file to determine what information columns to include in output
-
-        # Return if include file not specified (include all columns)
-        if self.info_column_file is None:
-            return None
-
-        # Go line by line and get names of columns to include and add them to list
-        info_to_include = []
-        with open(self.info_column_file, "r") as info_fh:
-            for line in info_fh:
-                info = line.strip()
-                if info != "":
-                    # Check to make sure you're not just getting an empty line
-                    info_to_include.append(info)
-
-        logging.debug("Info file specifies the following columns: %s" % info_to_include)
-        if len(info_to_include) == 0:
-            # Return None if file didn't actually contain any data
-            return None
-
-        # Return list of info columns to include
-        return info_to_include
 
 
 
