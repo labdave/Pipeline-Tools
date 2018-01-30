@@ -1,4 +1,5 @@
-from VCFHelper import VCFHelper
-from VCFAnnotationType import VCFAnnotationType
-from VCFRecoder import VCFRecoder
 from SnpEffVCFRecoder import SnpEffVCFRecoder
+from VCFAnnotationType import VCFAnnotationType
+from VCFHelper import VCFHelper
+from VCFRecoder import VCFRecoder
+
