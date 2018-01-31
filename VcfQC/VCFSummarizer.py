@@ -3,6 +3,7 @@ from collections import OrderedDict
 import vcf
 
 from SampleSummary import SampleSummary
+from VCFSummary import VCFSummary
 
 class VCFSummarizer(object):
 
@@ -15,36 +16,27 @@ class VCFSummarizer(object):
         # Path to recoded output file
         self.out_file = out_file
 
-        # Set summary parameters
-        self.max_indel_len      = kwargs.get("max_indel_len", 100)
-        self.max_depth          = kwargs.get("max_depth", 500)
-        self.max_qual           = kwargs.get("max_qual", 250)
-        self.num_afs_bins       = kwargs.get("num_afs_bins", 20)
-        self.missing_data_char  = kwargs.get("missing_data_char", ".")
+        # Missing data char
+        self.missing_data_char = kwargs.get("missing_data_char", ".")
 
         # Initialize VCF parser
         logging.debug("Initializing VCF parser for file: %s" % self.vcf_file)
-        self.parser         = vcf.Reader(open(self.vcf_file, "r"))
+        self.parser = vcf.Reader(open(self.vcf_file, "r"))
 
         # Get list of info columns
-        self.info_columns       = self.get_info_field_names()                               # Names of INFO columns declared in metadata section
+        self.info_columns = self.get_info_field_names()
         logging.debug("INFO columns:\n%s" % ", ".join(self.info_columns))
 
         # Get sample names
-        self.sample_names       = self.parser.samples                                       # Names of samples included in current VCF
+        self.sample_names   = self.parser.samples
         logging.debug("Samples:\n%s" % ", ".join(self.sample_names))
 
-        # Initialize VCF summary objects for each sample
-        self.summary = self.__init_summary()
-
-    def __init_summary(self):
-        # Initialize summaries for each sample and one for combined data
-        summary = {}
-        for sample in self.sample_names:
-            summary[sample] = SampleSummary(self.max_depth, self.max_qual, self.max_indel_len, self.num_afs_bins)
-        # Create a new summary for combined sample data
-        summary["combined"] = SampleSummary(self.max_depth, self.max_qual, self.max_indel_len, self.num_afs_bins)
-        return summary
+        # Initialize VCF summary object
+        max_indel_len   = kwargs.get("max_indel_len", 100)
+        max_depth       = kwargs.get("max_depth", 500)
+        max_qual        = kwargs.get("max_qual", 250)
+        num_afs_bins    = kwargs.get("num_afs_bins", 20)
+        self.summary    = VCFSummary(max_indel_len, max_depth, max_qual, num_afs_bins)
 
     def summarize_vcf(self):
         # Parse VCF and generate summary statistics
