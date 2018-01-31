@@ -1,5 +1,7 @@
 import logging
 import vcf
+from collections import OrderedDict
+
 from VCFAnnotationType import VCFAnnotationType
 
 class VCFHelper:
@@ -86,3 +88,32 @@ class VCFHelper:
                     return VCFAnnotationType.SNPEFF
             else:
                 return VCFAnnotationType.UNKNOWN
+
+    @staticmethod
+    def get_info_field_names(vcf_parser):
+        # Return all available annotation fields for a VCF file (in order)
+        # Get available field names
+        field_names = OrderedDict.fromkeys(vcf_parser.infos.keys()).keys()
+        if "ANN" in vcf_parser.infos.keys():
+            # SNPEff annotated VCF file
+            snpeff_fields = vcf_parser.infos["ANN"].desc.split("'")[1].split("|")
+            field_names += [x.strip() for x in snpeff_fields]
+        return field_names
+
+    @staticmethod
+    def get_info_field_names(vcf_parser):
+        # Return all available annotation fields for a VCF file (in order)
+        # Get available field names
+        field_names = OrderedDict.fromkeys(vcf_parser.infos.keys()).keys()
+        if "ANN" in vcf_parser.infos.keys():
+            # SNPEff annotated VCF file
+            snpeff_fields = vcf_parser.infos["ANN"].desc.split("'")[1].split("|")
+            snpeff_fields = [x.strip() for x in snpeff_fields]
+
+            # Remove 'ANN' and replace with unpacked values
+            ann_index = field_names.index("ANN")
+            field_names = field_names[0:ann_index] + snpeff_fields + field_names[ann_index+1:]
+
+        return field_names
+
+

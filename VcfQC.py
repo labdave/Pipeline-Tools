@@ -3,9 +3,9 @@ import os
 import argparse
 import logging
 import sys
+import vcf
 
 from VCF import VCFHelper
-from VcfQC import VCFSummarizer
 from Utils import configure_logging
 
 def configure_argparser(argparser_obj):
@@ -97,6 +97,27 @@ def configure_argparser(argparser_obj):
                                     "2 = Errors + Warnings + Info\n"
                                     "3 = Errors + Warnings + Info + Debug")
 
+def summarize_vcf(vcf_parser, vcf_summary):
+
+    # Line counter
+    processed = 0
+
+    for record in vcf_parser:
+
+        if processed % 100000 == 0:
+            logging.info("Processed %d records!" % processed)
+
+        # Check to make sure there is only one alternate allele for the record
+        if len(record.ALT) > 1:
+            # Raise error because it's just easier if we make people normalize their data beforehand
+            logging.error("Multiallelic error! All VCF records must have only one alternate allele. "
+                          "Received the following record:\n%s" % record)
+            # Failing to raise this error could cause some weirdo unintended bugs
+            raise IOError("Multiple alternate alleles detected at one or more positions in vcf file!")
+
+        # Process variant record and add pertinant data to summary
+        vcf_summary.process_record(record)
+
 def main():
 
     # Configure argparser
@@ -126,17 +147,24 @@ def main():
         if not VCFHelper.is_valid_vcf(vcf_file):
             raise IOError("Invalid VCF file!")
 
-        # Create VCFSummarizer
-        vcf_summary = VCFSummarizer(vcf_file,
-                                    out_file,
-                                    max_indel_len=max_indel_len,
-                                    max_depth=max_depth,
-                                    max_qual=max_qual,
-                                    num_afs_bins=num_afs_bins,
-                                    missing_data_char=missing_data_char)
+        # Get VCFParser
+        logging.debug("Initializing VCF parser for file: %s" % vcf_file)
+        vcf_parser = vcf.Reader(open(vcf_file, "r"))
+
+        # Initialize VCF summary
+        #sample_names    = vcf_parser.samples
+
+        #info_fields = OrderedDict.fromkeys(vcf_parser.infos.keys()).keys()
+        info_fields = VCFHelper.get_info_field_names(vcf_parser)
+        logging.debug("Available annotation fields:\n%s" % info_fields)
+
+        #vcf_summary     = VCFSummary(sample_names, max_depth, max_qual, max_indel_len, num_afs_bins)
+        #logging.debug("Samples:\n%s" % ", ".join(sample_names))
+
+        # Parse VCF and create variant summary
+        #summarize_vcf(vcf_parser, vcf_summary)
 
         # Summarize VCF file and print output to outfile
-        vcf_summary.summarize_vcf()
         logging.debug("(Main) Successfully summarized VCF file!")
 
     except KeyboardInterrupt:

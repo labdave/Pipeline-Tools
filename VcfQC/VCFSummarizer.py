@@ -2,8 +2,8 @@ import logging
 from collections import OrderedDict
 import vcf
 
-from SampleSummary import SampleSummary
-from VCFSummary import VCFSummary
+from Summary import VCFSummary
+
 
 class VCFSummarizer(object):
 
@@ -32,11 +32,15 @@ class VCFSummarizer(object):
         logging.debug("Samples:\n%s" % ", ".join(self.sample_names))
 
         # Initialize VCF summary object
-        max_indel_len   = kwargs.get("max_indel_len", 100)
-        max_depth       = kwargs.get("max_depth", 500)
-        max_qual        = kwargs.get("max_qual", 250)
-        num_afs_bins    = kwargs.get("num_afs_bins", 20)
-        self.summary    = VCFSummary(max_indel_len, max_depth, max_qual, num_afs_bins)
+        self.max_indel_len  = kwargs.get("max_indel_len", 100)
+        self.max_depth      = kwargs.get("max_depth", 500)
+        self.max_qual       = kwargs.get("max_qual", 250)
+        self.num_afs_bins   = kwargs.get("num_afs_bins", 20)
+        self.summary        = VCFSummary(self.sample_names,
+                                         self.max_depth,
+                                         self.max_qual,
+                                         self.max_indel_len,
+                                         self.num_afs_bins)
 
     def summarize_vcf(self):
         # Parse VCF and generate summary statistics
@@ -57,28 +61,24 @@ class VCFSummarizer(object):
                 # Failing to raise this error could cause some weirdo unintended bugs
                 raise IOError("Multiple alternate alleles detected at one or more positions in vcf file!")
 
-            # Process missing genotype
-            for unknown in record.get_unknowns():
-                self.process_unknown_genotype(unknown)
 
-            # Process called heterozygotes
-            for het in record.get_hets():
-                self.process_het_genotype(het)
-                #self.summary[het.sample].add_count("heterozygotes")
-                #self.summary[het.sample].add_depth(het[1])
+            # Determine if dbSNP membership
 
-            # Process called homozygous alternate genotypes
-            for hom_alt in record.get_hom_alts():
-                self.process_hom_alt_genotype(hom_alt)
+            # Determine variant functional effect
 
-            # Process called homozygous reference genotypes
-            for hom_ref in record.get_hom_refs():
-                self.process_hom_ref_genotype(hom_ref)
 
-            print record.aaf
-            print record.get_hets()
-            print len(record.get_unknowns())
-            print record.var_subtype
+
+
+
+
+
+
+
+
+            #print record.aaf
+            #print record.get_hets()
+            #print len(record.get_unknowns())
+            #print record.var_subtype
 
             # Increment number of records processed
             processed += 1
