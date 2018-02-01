@@ -1,3 +1,5 @@
+import logging
+
 class SampleSummary(object):
     # Class for holding summary data about a VCF file
     def __init__(self, max_depth=500, max_qual=500, max_indel_len=250, num_afs_bins=20):
@@ -20,12 +22,16 @@ class SampleSummary(object):
         self.deletes        = [0] * (max_indel_len + 1)
         self.afs            = [0] * num_afs_bins
 
-    def add_count(self, key):
-        # Increment a count in the main summary by one
-        if key in self.summary:
-            self.summary[key] += 1
-        else:
-            self.summary[key] = 1
+    def init_count(self, count_name):
+        # Initialize a counter for a specific data point
+        self.summary[count_name] = 0
+
+    def add_count(self, count_name):
+        # Increment a named counter
+        if count_name not in self.summary:
+            logging.error("(SampleSummary) Cannot increment a counter that hasn't been initialized: %s" % count_name)
+            raise RuntimeError("Cannot increment uninitialized SampleSummary counter!")
+        self.summary[count_name] += 1
 
     def add_depth(self, depth):
         # Increment depth histogram bin corresponding to observed depth

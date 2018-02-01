@@ -97,17 +97,6 @@ class VCFHelper:
         if "ANN" in vcf_parser.infos.keys():
             # SNPEff annotated VCF file
             snpeff_fields = vcf_parser.infos["ANN"].desc.split("'")[1].split("|")
-            field_names += [x.strip() for x in snpeff_fields]
-        return field_names
-
-    @staticmethod
-    def get_info_field_names(vcf_parser):
-        # Return all available annotation fields for a VCF file (in order)
-        # Get available field names
-        field_names = OrderedDict.fromkeys(vcf_parser.infos.keys()).keys()
-        if "ANN" in vcf_parser.infos.keys():
-            # SNPEff annotated VCF file
-            snpeff_fields = vcf_parser.infos["ANN"].desc.split("'")[1].split("|")
             snpeff_fields = [x.strip() for x in snpeff_fields]
 
             # Remove 'ANN' and replace with unpacked values
@@ -116,4 +105,8 @@ class VCFHelper:
 
         return field_names
 
-
+    @staticmethod
+    def get_snpeff_ann_field_names(vcf_parser):
+        # Return all available annotation fields contained in the SNPeff 'ANN' section
+        snpeff_fields = vcf_parser.infos["ANN"].desc.split("'")[1].split("|")
+        return [x.strip() for x in snpeff_fields]

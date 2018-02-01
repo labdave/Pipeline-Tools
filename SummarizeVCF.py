@@ -3,10 +3,11 @@ import os
 import argparse
 import logging
 import sys
-import vcf
 
 from VCF import VCFHelper
 from Utils import configure_logging
+from SummarizeVCF import VCFSummarizer
+from SummarizeVCF.VariantAnalyzer import VariantAnalyzerFactory
 
 def configure_argparser(argparser_obj):
 
@@ -22,6 +23,11 @@ def configure_argparser(argparser_obj):
             raise argparse.ArgumentTypeError(err_msg)
 
         return arg_string
+
+    # Type of VCFSummary to get
+    argparser_obj.add_argument('summary_type',
+                               choices=VariantAnalyzerFactory.SUMMARY_TYPES.keys(),
+                               help="VCF Summary type.")
 
     # Path to VCF input file
     argparser_obj.add_argument("--vcf",
@@ -97,31 +103,11 @@ def configure_argparser(argparser_obj):
                                     "2 = Errors + Warnings + Info\n"
                                     "3 = Errors + Warnings + Info + Debug")
 
-def summarize_vcf(vcf_parser, vcf_summary):
-
-    # Line counter
-    processed = 0
-
-    for record in vcf_parser:
-
-        if processed % 100000 == 0:
-            logging.info("Processed %d records!" % processed)
-
-        # Check to make sure there is only one alternate allele for the record
-        if len(record.ALT) > 1:
-            # Raise error because it's just easier if we make people normalize their data beforehand
-            logging.error("Multiallelic error! All VCF records must have only one alternate allele. "
-                          "Received the following record:\n%s" % record)
-            # Failing to raise this error could cause some weirdo unintended bugs
-            raise IOError("Multiple alternate alleles detected at one or more positions in vcf file!")
-
-        # Process variant record and add pertinant data to summary
-        vcf_summary.process_record(record)
-
 def main():
 
     # Configure argparser
-    argparser = argparse.ArgumentParser(prog="VcfQC")
+    argparser = argparse.ArgumentParser(prog="SummarizeVCF",
+                                        usage="SummarizeVCF.py <summary_type> [options]")
     configure_argparser(argparser)
 
     # Parse the arguments
@@ -132,12 +118,14 @@ def main():
 
     # Get names of input/output files
     vcf_file                = args.vcf_file
+    summary_type            = args.summary_type
     out_file                = args.out_file
-    max_indel_len           = args.max_indel_len
-    max_depth               = args.max_depth
-    max_qual                = args.max_qual
-    num_afs_bins            = args.num_afs_bins
-    missing_data_char       = args.missing_data_char
+
+    # Args for the VCF summary
+    summary_args = {"max_indel_len" : args.max_indel_len}
+    summary_args["max_depth"]     = args.max_depth
+    summary_args["max_qual"]      = args.max_qual
+    summary_args["num_afs_bins"]  = args.num_afs_bins
 
     try:
 
@@ -147,22 +135,9 @@ def main():
         if not VCFHelper.is_valid_vcf(vcf_file):
             raise IOError("Invalid VCF file!")
 
-        # Get VCFParser
-        logging.debug("Initializing VCF parser for file: %s" % vcf_file)
-        vcf_parser = vcf.Reader(open(vcf_file, "r"))
-
-        # Initialize VCF summary
-        #sample_names    = vcf_parser.samples
-
-        #info_fields = OrderedDict.fromkeys(vcf_parser.infos.keys()).keys()
-        info_fields = VCFHelper.get_info_field_names(vcf_parser)
-        logging.debug("Available annotation fields:\n%s" % info_fields)
-
-        #vcf_summary     = VCFSummary(sample_names, max_depth, max_qual, max_indel_len, num_afs_bins)
-        #logging.debug("Samples:\n%s" % ", ".join(sample_names))
-
-        # Parse VCF and create variant summary
-        #summarize_vcf(vcf_parser, vcf_summary)
+        # Summarize VCF
+        summarizer = VCFSummarizer(vcf_file, summary_type, **summary_args)
+        summarizer.summarize()
 
         # Summarize VCF file and print output to outfile
         logging.debug("(Main) Successfully summarized VCF file!")
