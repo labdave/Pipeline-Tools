@@ -8,10 +8,13 @@ from VCFSummary import VCFSummary
 class VCFSummarizer(object):
 
     # Class for parsing VCF objects
-    def __init__(self, vcf_file, summary_type, **kwargs):
+    def __init__(self, vcf_file, summary_type, max_records, **kwargs):
 
         # Get VCFParser
         self.vcf_parser = vcf.Reader(open(vcf_file, "r"))
+
+        # Set number of records to summarize
+        self.max_records = max_records
 
         # Get annotation parser specific to this vcf
         self.annotation_parser = AnnotationParser(self.vcf_parser)
@@ -22,7 +25,7 @@ class VCFSummarizer(object):
 
         # Create VCFSummary
         self.summary = VCFSummary(sample_names=self.vcf_parser.samples,
-                                  count_names=self.variant_analyzer.COUNTER_NAMES,
+                                  required_count_names=self.variant_analyzer.declare_required_count_fields(),
                                   **kwargs)
 
     def summarize(self):
@@ -48,22 +51,12 @@ class VCFSummarizer(object):
             # Add data from summarizer to report
             self.variant_analyzer.analyze(record=variant_record, vcf_summary=self.summary)
 
-
-
-
-
-
-
-
-
-
-            #print record.aaf
-            #print record.get_hets()
-            #print len(record.get_unknowns())
-            #print record.var_subtype
-
             # Increment number of records processed
             processed += 1
+
+            # Check to see if more records need summarizing
+            if processed > self.max_records and self.max_records != -1:
+                break
 
     def get_summary(self):
         return self.summary
