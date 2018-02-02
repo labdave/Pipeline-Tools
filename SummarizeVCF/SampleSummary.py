@@ -67,3 +67,31 @@ class SampleSummary(object):
         aaf_bin = int(aaf//self.num_afs_bins)
         # Increment appropriate count
         self.afs[aaf_bin] += 1
+
+    def get_count(self, count_name):
+        return self.summary[count_name]
+
+    def get_depth_summary(self):
+        labels = [str(x) for x in range(len(self.depths))]
+        labels[-1] = ">%s" % labels[-1]
+        return labels, self.depths
+
+    def get_qual_summary(self):
+        labels = [str(x) for x in range(len(self.quals))]
+        labels[-1] = ">%s" % labels[-1]
+        return labels, self.quals
+
+    def get_del_summary(self):
+        labels = [str(x) for x in range(len(self.deletes))]
+        labels[-1] = ">%s" % labels[-1]
+        return labels, self.deletes
+
+    def get_ins_summary(self):
+        labels = [str(x) for x in range(len(self.inserts))]
+        labels[-1] = ">%s" % labels[-1]
+        return labels, self.inserts
+
+    def get_aaf_summary(self):
+        bin_width = 1.0/self.num_afs_bins
+        labels = [ str(i*bin_width)  for i in range(self.num_afs_bins) ]
+        return labels, self.afs
