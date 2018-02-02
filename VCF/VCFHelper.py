@@ -110,3 +110,55 @@ class VCFHelper:
         # Return all available annotation fields contained in the SNPeff 'ANN' section
         snpeff_fields = vcf_parser.infos["ANN"].desc.split("'")[1].split("|")
         return [x.strip() for x in snpeff_fields]
+
+    @staticmethod
+    def get_variant_size(record):
+        # Return length of an insertion or deletion (Assumes two alleles)
+        return  len(record.alleles[1]) - len(record.alleles[0])
+
+    @staticmethod
+    def get_snp_transition_type(record):
+        return "%s%s" % (record.alleles[0], record.alleles[1])
+
+    @staticmethod
+    def get_variant_class(record_info):
+        # Return the type of variant (e.g. intronic, missense)
+
+        if "ExonicFunc.refGene" in record_info and record_info["ExonicFunc.refGene"] is not None:
+            # See if annovar annotation is present for coding variant
+            # Remove any commas
+            return record_info["ExonicFunc.refGene"].split("\\x3")[0]
+
+        elif "Func.refGene" in record_info and record_info["Func.refGene"] is not None:
+            # Check to see if annovar annotatio is present for intergenic/intronic variants
+            return record_info["Func.refGene"].split("\\x3")[0]
+
+        elif "Annotation" in record_info and record_info["Annotation"] is not None:
+            # See if SNPeff annotation is present
+            # Return only first annotation (multiple annotations can be joined by '&')
+            return record_info["Annotation"].split("&")[0]
+
+        return None
+
+    @staticmethod
+    def get_snpeff_impact(record_info):
+        # Return the predicted effect of the mutation
+        if "Annotation_Impact" in record_info:
+            return record_info["Annotation_Impact"]
+        return None
+
+    @staticmethod
+    def is_dbsnp(record, record_info):
+
+        # Check to see if rsID exists
+        if record.ID is not None and record.ID.startswith("rs"):
+            return True
+
+        # Check to see if Annovar annotations have dbSNP id
+        for info in record_info:
+            if info.startswith("snp1") and record_info[info] is not None:
+                if record_info[info].startswith("rs"):
+                    return True
+
+        return False
+
