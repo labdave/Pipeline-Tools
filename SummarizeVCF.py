@@ -46,6 +46,15 @@ def configure_argparser(argparser_obj):
                                help="Path to recoded output file.")
 
     # Upper boundary of indel length summary
+    argparser_obj.add_argument("--max-records",
+                               action="store",
+                               type=int,
+                               dest="max_records",
+                               required=False,
+                               default=-1,
+                               help="Maximum number of records to process. Default: ALL.")
+
+    # Upper boundary of indel length summary
     argparser_obj.add_argument("--max-indel-len",
                                action="store",
                                type=int,
@@ -120,6 +129,7 @@ def main():
     vcf_file                = args.vcf_file
     summary_type            = args.summary_type
     out_file                = args.out_file
+    max_records             = args.max_records
 
     # Args for the VCF summary
     summary_args = {"max_indel_len" : args.max_indel_len}
@@ -136,7 +146,7 @@ def main():
             raise IOError("Invalid VCF file!")
 
         # Summarize VCF
-        summarizer = VCFSummarizer(vcf_file, summary_type, **summary_args)
+        summarizer = VCFSummarizer(vcf_file, summary_type, max_records, **summary_args)
         summarizer.summarize()
 
         # Summarize VCF file and print output to outfile
