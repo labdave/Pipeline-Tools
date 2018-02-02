@@ -1,14 +1,18 @@
 import logging
-from collections import OrderedDict
 import vcf
+
+from VCF import AnnotationParser
 
 class VCFRecoder(object):
 
     # Class for parsing VCF objects
-    def __init__(self, vcf_file, out_file, **kwargs):
+    def __init__(self, vcf_parser, out_file, **kwargs):
 
-        # Path to vcf file
-        self.vcf_file = vcf_file
+        # vcf parser
+        self.parser = vcf_parser
+
+        # Create annotation parser
+        self.annotation_parser = AnnotationParser(self.parser)
 
         # Path to recoded output file
         self.out_file = out_file
@@ -29,25 +33,16 @@ class VCFRecoder(object):
         # If not specified, all info columns will be included
         self.info_to_include            = kwargs.get("info_to_include",     None)
 
-        # Initialize class variables
-        logging.debug("Initializing VCF parser for file: %s" % self.vcf_file)
-        self.parser         = vcf.Reader(open(self.vcf_file, "r"))
-
         # Names of columns to include (in the order they will appear in the recoded VCF)
         self.fixed_columns      = ["CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER"]    # Names of columns that are fixed across VCF files
-        self.info_columns       = self.get_info_field_names()                               # Names of INFO columns declared in metadata section
+        self.info_columns       = self.annotation_parser.get_available_info_fields()
         self.sample_names       = self.parser.samples                                       # Names of samples included in current VCF
-        self.info_include_cols  = None                                                      # Indices of INFO columns to include in output
 
         # Subset info to include if selecting only certain INFO columns
         logging.debug("INFO columns available in VCF:\n%s" % self.info_columns)
         if self.info_to_include is not None:
             # Check to make sure columns requested in info-column-file actually exist in VCF
             self.__check_info_to_include()
-            self.info_include_cols = [self.info_columns.index(i) for i in self.info_to_include]
-
-            # Report columns actually being output to recoded VCF file
-            logging.debug("INFO columns to be included in output: %s" % [self.info_columns[i] for i in self.info_include_cols])
 
     def recode_vcf(self):
         # Parse VCF and recode genotypes and output information as tab-delimited file
@@ -61,7 +56,7 @@ class VCFRecoder(object):
             colnames = self.fixed_columns + self.info_columns + self.sample_names
         else:
             # Case: Include only certain INFO columns
-            colnames = self.fixed_columns + [self.info_columns[i] for i in self.info_include_cols] + self.sample_names
+            colnames = self.fixed_columns + self.info_to_include + self.sample_names
 
         # Total number of data columns to get for each VCF record
         num_cols = len(colnames)
@@ -84,12 +79,16 @@ class VCFRecoder(object):
             record_data = self.get_fixed_data(record)
 
             # Get info column data
+            info = self.annotation_parser.get_info(record)
             if self.info_to_include is None:
                 # Don't subset info columns
-                record_data += self.get_info_data(record)
+                info_data = [info[header] for header in info.keys()]
             else:
                 # Subset info columns
-                record_data += [self.get_info_data(record)[i] for i in self.info_include_cols]
+                info_data = [info[header] for header in self.info_to_include]
+
+            # Replace 'None' with missing data character
+            record_data += [self.missing_data_char if x is None else x for x in info_data]
 
             # Add recoded genotypes for each sample
             record_data += self.get_genotype_data(record)
@@ -135,35 +134,6 @@ class VCFRecoder(object):
         data.append(filter_data)
 
         # Return fixed data values
-        return data
-
-    def get_info_data(self, record):
-        data = []
-        # Loop through required info columns in order and get their value for this record
-        for info_column in self.info_columns:
-            # Make sure the info columns is actually contained in the record
-            if info_column in record.INFO:
-                info_data = record.INFO[info_column]
-
-                if isinstance(info_data, list):
-                    # Case: record.INFO[info_column] is a list of values
-
-                    if info_data[0] is None and len(info_data) == 1:
-                        # Case: Missing data
-                        data.append(self.missing_data_char)
-                    else:
-                        # Case: One or more data points as a list
-                        data.append(",".join([str(x) for x in info_data]))
-
-                elif info_data is None:
-                    data.append(self.missing_data_char)
-
-                else:
-                    # Case: Data is a single value
-                    data.append(str(info_data))
-
-            else:
-                data.append(self.missing_data_char)
         return data
 
     def get_genotype_data(self, record):
@@ -212,11 +182,6 @@ class VCFRecoder(object):
                     return "0"
                 else:
                     return str(recoded)
-
-    def get_info_field_names(self):
-        info_fields = OrderedDict.fromkeys(self.parser.infos.keys()).keys()
-        logging.debug("(VCFRecoder) Getting following info fields:\n%s" % info_fields)
-        return info_fields
 
     def __check_info_to_include(self):
         # Check to make sure all info columns in 'info_to_include' actually appear in VCF

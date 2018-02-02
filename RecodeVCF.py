@@ -3,8 +3,10 @@ import os
 import argparse
 import logging
 import sys
+import vcf
 
-from VCF import VCFHelper, VCFAnnotationType, VCFRecoder, SnpEffVCFRecoder
+from VCF import VCFHelper
+from RecodeVCF import VCFRecoder
 from Utils import configure_logging
 
 def configure_argparser(argparser_obj):
@@ -147,35 +149,23 @@ def main():
             raise IOError("Invalid VCF file!")
 
         # Get correct VCFparser based on annotation type
-        vcf_recoder = None
-        vcf_anno_type = VCFHelper.get_annotation_type(vcf_file)
-        logging.debug("Detected VCF annotation type: '%s'" % vcf_anno_type)
 
-        if vcf_anno_type == VCFAnnotationType.ANNOVAR or vcf_anno_type == VCFAnnotationType.UNKNOWN:
-            # Get annovar/base VCFRecoder
-            vcf_recoder = VCFRecoder(vcf_file,
-                                     out_file,
-                                     info_to_include = info_columns,
-                                     min_call_depth = min_call_depth,
-                                     missing_data_char = missing_data_char,
-                                     missing_gt_char = missing_gt_char,
-                                     multiallelic=multiallelic)
+        # Initialize VCF parser
+        vcf_parser = vcf.Reader(open(vcf_file, "r"))
 
-        elif vcf_anno_type == VCFAnnotationType.SNPEFF:
-            # Get snpeff VCFRecoder
-            vcf_recoder = SnpEffVCFRecoder(vcf_file,
-                                           out_file,
-                                           info_to_include=info_columns,
-                                           min_call_depth = min_call_depth,
-                                           missing_data_char = missing_data_char,
-                                           missing_gt_char = missing_gt_char,
-                                           multiallelic=multiallelic)
+        # Create Recoder
+        vcf_recoder = VCFRecoder(vcf_parser,
+                                 out_file,
+                                 info_to_include = info_columns,
+                                 min_call_depth = min_call_depth,
+                                 missing_data_char = missing_data_char,
+                                 missing_gt_char = missing_gt_char,
+                                 multiallelic=multiallelic)
 
         # Recode the VCF file and write output to outfile
         vcf_recoder.recode_vcf()
-
-        # Stuff goes here
         logging.debug("(Main) Successfully recoded VCF file!")
+
     except KeyboardInterrupt:
         logging.error("(Main) Keyboard interrupt!")
         raise
