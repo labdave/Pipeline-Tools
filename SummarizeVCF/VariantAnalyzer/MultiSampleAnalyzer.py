@@ -47,7 +47,7 @@ class MultiSampleAnalyzer(object):
     def analyze(self, record, vcf_summary):
         # Process VCF record and add any necessary information to the VCFSummary
 
-        # Determine whether variant is a spanning deletion
+        # Determine whether variant is a spanning deletion (alternate allele will be '*')
         spanning_deletion = record.alleles[1] == "*"
 
         # Parse available variant annotations
