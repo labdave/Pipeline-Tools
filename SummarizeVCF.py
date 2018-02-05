@@ -61,7 +61,7 @@ def configure_argparser(argparser_obj):
                                type=int,
                                dest="max_depth",
                                required=False,
-                               default=500,
+                               default=100,
                                help="Upper bound of variant depth summary.")
 
     # Upper boundary of indel length summary
@@ -70,7 +70,7 @@ def configure_argparser(argparser_obj):
                                type=int,
                                dest="max_qual",
                                required=False,
-                               default=250,
+                               default=100,
                                help="Upper bound of variant quality summary.")
 
     # Number of bins for allele frequency spectrum
@@ -81,15 +81,6 @@ def configure_argparser(argparser_obj):
                                required=False,
                                default=20,
                                help="Number of bins to use for Allele Frequency Spectrum.")
-
-    # Character used to denote missing variant information
-    argparser_obj.add_argument("--missing-data-char",
-                               action="store",
-                               type=str,
-                               dest="missing_data_char",
-                               required=False,
-                               default='.',
-                               help="Character used as placeholder for missing VCF info.")
 
     # Verbosity level
     argparser_obj.add_argument("-v",
