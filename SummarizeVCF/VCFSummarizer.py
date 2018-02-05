@@ -56,9 +56,7 @@ class VCFSummarizer(object):
 
             # Check to see if more records need summarizing
             if processed >= self.max_records and self.max_records != -1:
-                print "processed: %s" % processed
                 break
-
 
     def get_summary(self):
         return self.summary
