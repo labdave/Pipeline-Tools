@@ -14,6 +14,7 @@ class SampleSummary(object):
 
         # Number of bins to use for allele frequency spectrum counts
         self.num_afs_bins   = num_afs_bins
+        self.afs_bin_width  = 1.0/num_afs_bins
 
         # Initialize count arrays for holding histogram counts for each data type
         self.depths         = [0] * (max_depth + 1)
@@ -64,7 +65,7 @@ class SampleSummary(object):
     def add_aaf(self, aaf):
         # Add alternative allele frequency (AAF) to AAF histogram
         # Determine bin membership
-        aaf_bin = int(aaf//self.num_afs_bins)
+        aaf_bin = int(aaf//self.afs_bin_width)
         # Increment appropriate count
         self.afs[aaf_bin] += 1
 
