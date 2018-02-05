@@ -47,15 +47,14 @@ class MultiSampleAnalyzer(object):
     def analyze(self, record, vcf_summary):
         # Process VCF record and add any necessary information to the VCFSummary
 
-        # Skip spanning deletions
-        if record.alleles[1] == "*":
-            return
+        # Determine whether variant is a spanning deletion
+        spanning_deletion = record.alleles[1] == "*"
 
         # Parse available variant annotations
         record_info = self.annotation_parser.get_info(record)
 
         # Get variant information before processing genotypes
-        if record.is_indel:
+        if record.is_indel or spanning_deletion:
             # Determine deletion length
             indel_len = abs(VCFHelper.get_variant_size(record))
 
@@ -111,7 +110,7 @@ class MultiSampleAnalyzer(object):
                 vcf_summary.add_count(sample_name, "Homozygous-Alt")
 
             # Add information for type of variant
-            if record.is_indel and record.is_deletion:
+            if record.is_indel and record.is_deletion or spanning_deletion:
                 # Record deletion
                 vcf_summary.add_count(sample_name, "Deletions")
                 vcf_summary.add_del(sample_name, del_len=indel_len)
