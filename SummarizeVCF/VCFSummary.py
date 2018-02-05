@@ -11,8 +11,8 @@ class VCFSummary(object):
 
         # Upper bin for depth, qual, indel distribution summaries
         self.max_indel_len  = kwargs.get("max_indel_len",   100)
-        self.max_depth      = kwargs.get("max_depth",       500)
-        self.max_qual       = kwargs.get("max_qual",        250)
+        self.max_depth      = kwargs.get("max_depth",       100)
+        self.max_qual       = kwargs.get("max_qual",        100)
 
         # Number of bins to use for allele frequency spectrum counts
         self.num_afs_bins   = kwargs.get("num_afs_bins",    20)
