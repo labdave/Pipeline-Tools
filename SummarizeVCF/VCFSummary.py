@@ -61,9 +61,10 @@ class VCFSummary(object):
 
     def __get_count_data_string(self):
         to_ret = "#COUNTS\n"
-        to_ret += "\t".join(["Sample"] + self.count_names) + "\n"
+        count_names = [x.replace(" ", "_") for x in self.count_names]
+        to_ret += "\t".join(["Sample"] + count_names) + "\n"
         for sample in self.sample_names:
-            sample_data = [sample] + [str(self.summary[sample].get_count(count_name)) for count_name in self.count_names]
+            sample_data = [sample] + ["%d" % self.summary[sample].get_count(count_name) for count_name in self.count_names]
             to_ret += "\t".join(sample_data) + "\n"
         return to_ret
 
@@ -75,7 +76,7 @@ class VCFSummary(object):
             if first_sample:
                 to_ret += "\t".join(["Sample"] + labels) + "\n"
                 first_sample = False
-            sample_data = [sample] + [str(x) for x in data]
+            sample_data = [sample] + ["%d" % x for x in data]
             to_ret += "\t".join(sample_data) + "\n"
         return to_ret
 
@@ -87,7 +88,7 @@ class VCFSummary(object):
             if first_sample:
                 to_ret += "\t".join(["Sample"] + labels) + "\n"
                 first_sample = False
-            sample_data = [sample] + [str(x) for x in data]
+            sample_data = [sample] + ["%d" % x for x in data]
             to_ret += "\t".join(sample_data) + "\n"
         return to_ret
 
@@ -99,7 +100,7 @@ class VCFSummary(object):
             if first_sample:
                 to_ret += "\t".join(["Sample"] + labels) + "\n"
                 first_sample = False
-            sample_data = [sample] + [str(x) for x in data]
+            sample_data = [sample] + ["%d" % x for x in data]
             to_ret += "\t".join(sample_data) + "\n"
         return to_ret
 
@@ -111,7 +112,7 @@ class VCFSummary(object):
             if first_sample:
                 to_ret += "\t".join(["Sample"] + labels) + "\n"
                 first_sample = False
-            sample_data = [sample] + [str(x) for x in data]
+            sample_data = [sample] + ["%d" % x for x in data]
             to_ret += "\t".join(sample_data) + "\n"
         return to_ret
 
@@ -123,6 +124,6 @@ class VCFSummary(object):
             if first_sample:
                 to_ret += "\t".join(["Sample"] + labels) + "\n"
                 first_sample = False
-            sample_data = [sample] + [str(x) for x in data]
+            sample_data = [sample] + ["%d" % x for x in data]
             to_ret += "\t".join(sample_data) + "\n"
         return to_ret
