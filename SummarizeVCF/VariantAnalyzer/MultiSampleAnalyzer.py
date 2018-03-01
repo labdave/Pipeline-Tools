@@ -88,6 +88,10 @@ class MultiSampleAnalyzer(object):
             if hasattr(gt.data,"AD"):
                 vcf_summary.add_depth(sample_name, depth=sum(gt.data.AD))
 
+            # Report genotype quality for all called genotypes
+            if hasattr(gt.data, "GQ"):
+                vcf_summary.add_qual(sample_name, qual=gt.data.GQ)
+
             if not gt_type > 0:
                 # Skip homo ref genotypes
                 continue
@@ -95,11 +99,7 @@ class MultiSampleAnalyzer(object):
             # Increment total number of variants for sample
             vcf_summary.add_count(sample_name, "Variant GT")
 
-            # Report variant call quality and alternate allele frequency
-            if hasattr(gt.data,"GQ"):
-                vcf_summary.add_qual(sample_name, qual=gt.data[3])
-
-            # Report alternate allele frequency
+            # Report alternate allele frequency for all variants
             vcf_summary.add_aaf(sample_name, record.aaf[0])
 
             # Add information for whether variant is hetero or homo alternate allele
