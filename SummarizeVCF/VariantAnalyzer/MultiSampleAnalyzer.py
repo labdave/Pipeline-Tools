@@ -76,11 +76,6 @@ class MultiSampleAnalyzer(object):
             gt = record.genotype(sample_name)
             gt_type = gt.gt_type
 
-            # Report sequencing depth for all samples, positions
-            if gt.data[2] is not None:
-                vcf_summary.add_depth(sample_name, depth=gt.data[2])
-
-
             if gt_type is None:
                 # Increment missing genotype count
                 vcf_summary.add_count(sample_name, "Missing GT")
@@ -88,6 +83,10 @@ class MultiSampleAnalyzer(object):
 
             # Increment called genotype count regardless of whether it's called a variant
             vcf_summary.add_count(sample_name, "Called GT")
+
+            # Report sequencing depth for all called genotypes
+            if hasattr(gt.data,"AD"):
+                vcf_summary.add_depth(sample_name, depth=sum(gt.data.AD))
 
             if not gt_type > 0:
                 # Skip homo ref genotypes
@@ -97,7 +96,10 @@ class MultiSampleAnalyzer(object):
             vcf_summary.add_count(sample_name, "Variant GT")
 
             # Report variant call quality and alternate allele frequency
-            vcf_summary.add_qual(sample_name, qual=gt.data[3])
+            if hasattr(gt.data,"GQ"):
+                vcf_summary.add_qual(sample_name, qual=gt.data[3])
+
+            # Report alternate allele frequency
             vcf_summary.add_aaf(sample_name, record.aaf[0])
 
             # Add information for whether variant is hetero or homo alternate allele
