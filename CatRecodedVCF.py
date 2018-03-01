@@ -104,7 +104,6 @@ def main():
             logging.error("CatRecodeVCF failed! Received following error message:\n%s" % err)
             exit(1)
 
-
     except KeyboardInterrupt:
         logging.error("(Main) Keyboard interrupt!")
         raise
