@@ -3,9 +3,9 @@ import os
 import argparse
 import logging
 import sys
-import subprocess as sp
 
 from Utils import configure_logging
+from SummarizeVCF import VCFSummaryParser, merge_two_vcf_summaries
 
 def configure_argparser(argparser_obj):
 
@@ -65,10 +65,24 @@ def main():
 
     try:
 
-        # Run command to concat all tables together
-        cmd = "awk 'FNR==1 && NR!=1{next;}{print}' %s > %s" % (" ".join(args.input_files), args.out_file)
-        proc = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE, shell=True)
-        out, err = proc.communicate()
+        # Create VCFSummaryParser objects from files
+        vcf_summary_parsers = [VCFSummaryParser(input_file) for input_file in args.input_files]
+
+        # Parse and merge VCFSummaries
+        merged_summary = None
+        for vcf_summary_parser in vcf_summary_parsers:
+
+            # Parse VCFSummary
+            vcf_summary = vcf_summary_parser.parse()
+
+            if merged_summary is None:
+                # Initialize base VCFSummary
+                merged_summary = vcf_summary
+            else:
+                # Merge with previous VCFSummaries
+                merged_summary = merge_two_vcf_summaries(merged_summary, vcf_summary)
+
+        print merged_summary
 
     except KeyboardInterrupt:
         logging.error("(Main) Keyboard interrupt!")
