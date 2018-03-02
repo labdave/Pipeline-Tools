@@ -1,6 +1,7 @@
 import logging
 
 from MultiSampleAnalyzer import MultiSampleAnalyzer
+from MutectMultiSampleAnalyzer import MutectMultiSampleAnalyzer
 
 class VariantAnalyzerFactorError(Exception):
     pass
@@ -9,7 +10,8 @@ class VariantAnalyzerFactory:
     # Factory class for initializing variant analysis types
 
     # Available summary types
-    SUMMARY_TYPES = {"Multisample" : MultiSampleAnalyzer}
+    SUMMARY_TYPES = {"Multisample" : MultiSampleAnalyzer,
+                     "Mutect"       : MutectMultiSampleAnalyzer}
 
     def __init__(self, annotation_parser):
         self.annotation_parser = annotation_parser

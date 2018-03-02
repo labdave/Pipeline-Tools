@@ -1,2 +1,3 @@
 from MultiSampleAnalyzer import MultiSampleAnalyzer
+from MutectMultiSampleAnalyzer import MutectMultiSampleAnalyzer
 from VariantAnalyzerFactory import VariantAnalyzerFactory
