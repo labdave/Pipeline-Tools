@@ -31,13 +31,6 @@ def configure_argparser(argparser_obj):
                                required=True,
                                help="Space-delimited list of RecodedVCF files to combine")
 
-    # Path to VCF input file
-    argparser_obj.add_argument("--output",
-                               action="store",
-                               type=str,
-                               dest="out_file",
-                               required=True,
-                               help="Path to recoded output file.")
     # Verbosity level
     argparser_obj.add_argument("-v",
                                action='count',
