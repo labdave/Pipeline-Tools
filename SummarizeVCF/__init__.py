@@ -1,3 +1,5 @@
 from VCFSummarizer import VCFSummarizer
 from SampleSummary import SampleSummary
 from VCFSummary import VCFSummary
+from VCFSummaryParser import VCFSummaryParser
+from VCFSummaryFunctions import merge_two_vcf_summaries
