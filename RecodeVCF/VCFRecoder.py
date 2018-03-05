@@ -53,10 +53,10 @@ class VCFRecoder(object):
         # Combine columns into a single header
         if self.info_to_include is None:
             # Case: Get all INFO columns
-            colnames = self.fixed_columns + self.info_columns + self.sample_names
+            colnames = self.fixed_columns + self.info_columns + self.sample_names + self.sample_names
         else:
             # Case: Include only certain INFO columns
-            colnames = self.fixed_columns + self.info_to_include + self.sample_names
+            colnames = self.fixed_columns + self.info_to_include + self.sample_names + self.sample_names
 
         # Total number of data columns to get for each VCF record
         num_cols = len(colnames)
@@ -92,6 +92,8 @@ class VCFRecoder(object):
 
             # Add recoded genotypes for each sample
             record_data += self.get_genotype_data(record)
+
+            record_data += self.get_depth_data(record)
 
             if len(record_data) != num_cols:
                 logging.error("(VCFRecoder) Record doesn't contain the same number of columns as header:\n%s" % record)
@@ -140,6 +142,12 @@ class VCFRecoder(object):
         data = []
         for sample in self.sample_names:
             data.append(self.get_recoded_genotype(record.genotype(sample)))
+        return data
+
+    def get_depth_data(self, record):
+        data = []
+        for sample in self.sample_names:
+            data.append(sum(record.genotype(sample).data.AD))
         return data
 
     def get_recoded_genotype(self, sample_genotype):
