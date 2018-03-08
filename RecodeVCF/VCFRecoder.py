@@ -147,7 +147,14 @@ class VCFRecoder(object):
     def get_depth_data(self, record):
         data = []
         for sample in self.sample_names:
-            data.append(sum(record.genotype(sample).data.AD))
+            if hasattr(record.genotype(sample).data, "AD") and record.genotype(sample).data.AD is not None:
+                data.append(sum(record.genotype(sample).data.AD))
+            elif hasattr(record.genotype(sample).data, "F1R2") and hasattr(record.genotype(sample).data, "F2R1"):
+                r1_sum = sum([x for x in record.genotype(sample).data.F1R2 if x is not None]) if record.genotype(sample).data.F1R2 is not None else 0
+                r2_sum = sum([x for x in record.genotype(sample).data.F2R1 if x is not None]) if record.genotype(sample).data.F2R1 is not None else 0
+                data.append(r1_sum+r2_sum)
+            else:
+                data.append(0)
         return data
 
     def get_recoded_genotype(self, sample_genotype):
@@ -164,7 +171,11 @@ class VCFRecoder(object):
             # Case: Called homozygous REF
 
             # Get allele depth of reference allele
-            dp = sample_genotype.data.AD[0]
+            if hasattr(sample_genotype.data, "AD"):
+                dp = sample_genotype.data.AD[0]
+            else:
+                # Take care of weirdo mutect case
+                dp = sample_genotype.data.F1R2[0] + sample_genotype.data.F2R1[0]
 
             if dp >= self.min_call_depth:
                 # Case: DP > min_call_depth so report that we are confident GT is homo REF (-1)
@@ -179,8 +190,12 @@ class VCFRecoder(object):
         elif sample_genotype.gt_type != 0:
             # Case: Called hetero or homozygous ALT
 
-            # Get allele depth of alternate allele
-            dp = sample_genotype.data.AD[1]
+            # Get allele depth of reference allele
+            if hasattr(sample_genotype.data, "AD"):
+                dp = sample_genotype.data.AD[1]
+            else:
+                # Fuck mutect. Why can it not simply adhere to common file standards?
+                dp = sample_genotype.data.F1R2[1] + sample_genotype.data.F2R1[1]
 
             if dp >= self.min_call_depth:
                 return "1"
