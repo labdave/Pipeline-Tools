@@ -171,7 +171,7 @@ class VCFRecoder(object):
             # Case: Called homozygous REF
 
             # Get allele depth of reference allele
-            if hasattr(sample_genotype.data, "AD"):
+            if hasattr(sample_genotype.data, "AD") and sample_genotype.data.AD is not None:
                 dp = sample_genotype.data.AD[0]
             else:
                 # Take care of weirdo mutect case
@@ -191,7 +191,7 @@ class VCFRecoder(object):
             # Case: Called hetero or homozygous ALT
 
             # Get allele depth of reference allele
-            if hasattr(sample_genotype.data, "AD"):
+            if hasattr(sample_genotype.data, "AD") and sample_genotype.data.AD is not None:
                 dp = sample_genotype.data.AD[1]
             else:
                 # Fuck mutect. Why can it not simply adhere to common file standards?
