@@ -96,8 +96,11 @@ class MutectMultiSampleAnalyzer(object):
             vcf_summary.add_count(sample_name, "Passed Filter")
 
             # Report variant depth for somatic variant
-            if hasattr(gt.data, "AD"):
+            if hasattr(gt.data, "AD") and gt.data.AD is not None:
                 vcf_summary.add_depth(sample_name, depth=gt.data.AD[1])
+            else:
+                dp = gt.data.F1R2[1] + gt.data.F2R1[1]
+                vcf_summary.add_depth(sample_name, dp)
 
             # Increment total number of variants for sample
             vcf_summary.add_count(sample_name, "Variant GT")
