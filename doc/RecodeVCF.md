@@ -50,7 +50,7 @@ When doing variant analysis, we're typically interested in two types of informat
 1. Sample genotypes at each position
 2. Annotations associated with variant alleles
 
-In VCF format, sample genotypes and annotations are not searchable/sortable.
+**Problem:** sample genotypes and annotations are not searchable/sortable in VCF format
 
 *Example VCF genotypes*
 
