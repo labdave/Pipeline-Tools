@@ -77,12 +77,12 @@ At present, **Pipeline-Tools** contains two tools for VCF processing:
 
 
 ### RecodeVCF
-Recodes genotypes in a VCF to reflect sequencing depth of alt allele. 
+Transforms VCF genotype calls, annotations into searchable/sortable RecodedVCF format. 
  [Complete Documentation](./doc/RecodeVCF.md) found here.
 
 ### SummarizeVCF
 Summarizes variant features 
-contained in a VCF.  [Complete Documentation](./doc/SummarizeVCF.md) found here.
+based on annotations contained in a VCF.  [Complete Documentation](./doc/SummarizeVCF.md) found here.
 
 
 ## Project Status
