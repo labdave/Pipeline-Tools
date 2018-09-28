@@ -158,7 +158,7 @@ optional arguments:
 
 ### When is CatVCFSummary.py useful?
 To drastically decrease processing time, VCF files can be split by chromosome using [SnpEff] and summarized in parallel. 
-**CatVCFSummary** is designed to merge these splits back into a single VCFSummary.
+**CatVCFSummary.py** is designed to merge these splits back into a single VCFSummary.
 
 Example:
 
