@@ -73,24 +73,16 @@ $ sudo docker run --rm --user root alexwaldrop/pipeline-tools:latest "CatVCFSumm
 ``` 
 
 ## Submodules
-At present, **Pipeline-Tools** contains four tools for VCF processing:
+At present, **Pipeline-Tools** contains two tools for VCF processing:
 
 
 ### RecodeVCF
-
-**RecodeVCF.py**: Recodes genotypes in a VCF to reflect sequencing depth of alt allele. Outputs tabular formatted VCF with annotation columns expanded. 
-
-**CatRecodedVCF.py**: Helper module to facilitate parallelization of RecodedVCF by aggregating chromosome level RecodedVCFS into single VCF 
-
-[Complete Documentation](./doc/RecodeVCF.md) for RecodeVCF and CatRecodedVCF.
+Recodes genotypes in a VCF to reflect sequencing depth of alt allele. 
+ [Complete Documentation](./doc/RecodeVCF.md) found here.
 
 ### SummarizeVCF
-
-**SummarizeVCF.py**: Output VCF summary of variant types contained in a VCF 
-
-**CatVCFSummary.py**: Helper module to facilitate parallelization of SummarizeVCF by aggregating stats across multiple VCFs into single summary.
-
-[Complete Documentation](./doc/SummarizeVCF.md) for SummarizeVCF and CatVCFSummary.
+Summarizes variant features 
+contained in a VCF.  [Complete Documentation](./doc/SummarizeVCF.md) found here.
 
 
 ## Project Status
