@@ -108,6 +108,11 @@ Examples:
     * Obviously real loci are multi-alleleic but VCF files should be normalized using [BCFtools] Norm to break them into separate lines in VCF
     * Allows each allele to have separate annotations
     
+## Output file
+RecodeVCF.py outputs a tab-delimited file which has the following properties:
+1. First 7 columns are always CHROM, POS, ID, REF, ALT, QUAL, FILTER as they are in VCF without modification
+2. Each field in the INFO column becomes a separate column in output (Column headers included)
+3. Each sample gets its own column for storing its recoded genotype at each locus
 ### Advanced parameters
 
 By default the *--min-call-depth* parameter is set to 10. This means that at least 10 reads are required to support an allele in order to make a genotype call. 
