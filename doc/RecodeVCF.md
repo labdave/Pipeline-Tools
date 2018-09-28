@@ -67,10 +67,12 @@ Further complicating the issue, there are several different programs (e.g. Annov
 **RecodeVCF.py** solves this problem by converting a VCF file into a RecodedVCF format.
 **RecodedVCF.py** makes variant information searchable/sortable by:
 
-1. Recodes genotype info for samples into a single number between -1 and 1 
-2. Parses variant annotation field into separate columns
+1. Recoding each genotype into a single number between -1 and 1 
+2. Parsing variant annotation data into separate columns
 
 ### Recoding algorithm
+The goal of variant recoding is to summarize an 
+individual's genotype and the confidence associated with that genotype call in a single number.
  
     num_reads = number of reads needed to make a genotype call
     
@@ -141,6 +143,25 @@ optional arguments:
 ### When is CatRecodedVCF.py useful?
 To drastically decrease processing time, VCF files can be split by chromosome using [SnpEff] and recoded in parallel. 
 **CatRecodedVCF** is designed to merge these splits back into a single RecodedVCF.
+
+Example:
+
+Recode VCF splits using **RecodeVCF.py**
+``` sh
+cd ./Pipeline-Tools
+
+python ./RecodeVCF.py -i gt.chr1.vcf -o gt.chr1.rec.vcf
+python ./RecodeVCF.py -i gt.chr2.vcf -o gt.chr2.rec.vcf
+python ./RecodeVCF.py -i gt.chr3.vcf -o gt.chr3.rec.vcf
+```
+Merge using **CatRecodedVCF.py**
+
+``` sh
+cd ./Pipeline-Tools
+
+python ./CatRecodedVCF.py -i gt.chr1.rec.vcf gt.chr2.rec.vcf gt.chr3.rec.vcf \
+    -o genotypes.recoded.vcf
+```
 
 [VCF]:http://www.internationalgenome.org/wiki/Analysis/Variant%20Call%20Format/vcf-variant-call-format-version-40/
 [Annovar]:http://annovar.openbioinformatics.org/en/latest/
