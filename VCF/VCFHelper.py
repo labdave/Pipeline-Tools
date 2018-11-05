@@ -64,6 +64,13 @@ class VCFHelper:
 
                     # Validate first record
                     line = line.split()
+
+                    # Check if the VCF is empty
+                    if len(line) == 0:
+                        logging.warning("VCF is valid, but it's empty!")
+                        return True
+
+                    # Check if the number of columns is as expected
                     if len(line) != num_samples + len(VCFHelper.HEADER_FIELDS):
                         logging.error("Invalid VCF file format! First record did not contain the correct number of columns!")
                         return False
