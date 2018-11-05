@@ -10,7 +10,7 @@ LABEL description="Python package for various NGS utility functions."
 LABEL tags="recode vcf genotype"
 
 # Maintainer
-MAINTAINER Alex Waldrop <alex.waldrop@duke.edu>
+MAINTAINER Dave Lab <lab.dave@gmail.com>
 
 # update the OS related packages
 RUN apt-get update
@@ -26,7 +26,7 @@ RUN pip install pyVCF
 RUN mkdir tools
 
 # get the QCParser from GitHub
-RUN git clone https://github.com/alexwaldrop/Pipeline-Tools.git /tools/PipelineTools
+RUN git clone --branch master https://github.com/labdave/Pipeline-Tools.git /tools/PipelineTools
 
 RUN chmod 777 -R /tools/PipelineTools
 
