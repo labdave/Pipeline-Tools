@@ -148,7 +148,9 @@ class VCFRecoder(object):
         data = []
         for sample in self.sample_names:
             if hasattr(record.genotype(sample).data, "AD") and record.genotype(sample).data.AD is not None:
-                data.append(sum(record.genotype(sample).data.AD))
+                data.append(sum(record.genotype(sample).data.AD)
+                            if isinstance(record.genotype(sample).data.AD, list) else record.genotype(sample).data.AD
+                            )
             elif hasattr(record.genotype(sample).data, "F1R2") and hasattr(record.genotype(sample).data, "F2R1"):
                 r1_sum = sum([x for x in record.genotype(sample).data.F1R2 if x is not None]) if record.genotype(sample).data.F1R2 is not None else 0
                 r2_sum = sum([x for x in record.genotype(sample).data.F2R1 if x is not None]) if record.genotype(sample).data.F2R1 is not None else 0
@@ -172,7 +174,8 @@ class VCFRecoder(object):
 
             # Get allele depth of reference allele
             if hasattr(sample_genotype.data, "AD") and sample_genotype.data.AD is not None:
-                dp = sample_genotype.data.AD[0]
+                dp = sample_genotype.data.AD[0] if isinstance(sample_genotype.data.AD, list) else \
+                    sample_genotype.data.AD
             else:
                 # Take care of weirdo mutect case
                 dp = sample_genotype.data.F1R2[0] + sample_genotype.data.F2R1[0]
