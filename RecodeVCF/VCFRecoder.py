@@ -147,11 +147,23 @@ class VCFRecoder(object):
     def get_depth_data(self, record):
         data = []
         for sample in self.sample_names:
-            if hasattr(record.genotype(sample).data, "AD") and record.genotype(sample).data.AD is not None:
-                data.append(sum(record.genotype(sample).data.AD))
-            elif hasattr(record.genotype(sample).data, "F1R2") and hasattr(record.genotype(sample).data, "F2R1"):
-                r1_sum = sum([x for x in record.genotype(sample).data.F1R2 if x is not None]) if record.genotype(sample).data.F1R2 is not None else 0
-                r2_sum = sum([x for x in record.genotype(sample).data.F2R1 if x is not None]) if record.genotype(sample).data.F2R1 is not None else 0
+
+            # Get genotype data for the record
+            genotype_data = record.genotype(sample).data
+
+            if hasattr(genotype_data, "AD") and genotype_data.AD is not None:
+
+                # Obtain the actual allele depth value
+                if isinstance(genotype_data.AD, list):
+                    AD = sum( [_ad for _ad in genotype_data.AD if _ad is not None] )
+                else:
+                    AD = genotype_data.AD if genotype_data.AD is not None else 0
+
+                data.append(AD)
+
+            elif hasattr(genotype_data, "F1R2") and hasattr(genotype_data, "F2R1"):
+                r1_sum = sum([x for x in genotype_data.F1R2 if x is not None]) if genotype_data.F1R2 is not None else 0
+                r2_sum = sum([x for x in genotype_data.F2R1 if x is not None]) if genotype_data.F2R1 is not None else 0
                 data.append(r1_sum+r2_sum)
             else:
                 data.append(0)
