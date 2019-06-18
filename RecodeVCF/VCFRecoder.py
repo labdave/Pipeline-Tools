@@ -6,13 +6,16 @@ from VCF import AnnotationParser
 class VCFRecoder(object):
 
     # Class for parsing VCF objects
-    def __init__(self, vcf_parser, out_file, **kwargs):
+    def __init__(self, vcf_parser, vcf_file, out_file, **kwargs):
 
         # vcf parser
         self.parser = vcf_parser
 
         # Create annotation parser
         self.annotation_parser = AnnotationParser(self.parser)
+
+        # Path to input VCF file
+        self.vcf_file = vcf_file
 
         # Path to recoded output file
         self.out_file = out_file
@@ -53,10 +56,12 @@ class VCFRecoder(object):
         # Combine columns into a single header
         if self.info_to_include is None:
             # Case: Get all INFO columns
-            colnames = self.fixed_columns + self.info_columns + self.sample_names + self.sample_names
+            colnames = self.fixed_columns + self.info_columns + self.sample_names + self.sample_names + ['FORMAT'] + \
+                       self.sample_names
         else:
             # Case: Include only certain INFO columns
-            colnames = self.fixed_columns + self.info_to_include + self.sample_names + self.sample_names
+            colnames = self.fixed_columns + self.info_to_include + self.sample_names + self.sample_names + ['FORMAT']\
+                       + self.sample_names
 
         # Total number of data columns to get for each VCF record
         num_cols = len(colnames)
@@ -64,8 +69,16 @@ class VCFRecoder(object):
         # Write header to file
         out_file_handle.write("%s\n" % "\t".join(colnames))
 
+        # Open the input VCF file
+        vcf_reader = open(self.vcf_file, 'r')
+
+        # Skip header line from input VCF file
+        for vcf_line in vcf_reader:
+            if vcf_line.startswith("#CHROM"):
+                break
+
         # Iterate over VCF records
-        for record in self.parser:
+        for record, vcf_line in zip(self.parser, vcf_reader):
 
             # Check to make sure there is only one alternate allele for the record
             if len(record.ALT) > 1 and not self.multiallelic:
@@ -94,6 +107,11 @@ class VCFRecoder(object):
             record_data += self.get_genotype_data(record)
 
             record_data += self.get_depth_data(record)
+
+            # Obtaint VCF complete genotype columns
+            genotype_cols = vcf_line.split('\t')[8:]
+
+            record_data.extend(genotype_cols)
 
             if len(record_data) != num_cols:
                 logging.error("(VCFRecoder) Record doesn't contain the same number of columns as header:\n%s" % record)
@@ -147,7 +165,6 @@ class VCFRecoder(object):
     def get_depth_data(self, record):
         data = []
         for sample in self.sample_names:
-
             # Get genotype data for the record
             genotype_data = record.genotype(sample).data
 

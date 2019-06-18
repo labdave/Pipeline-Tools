@@ -155,6 +155,7 @@ def main():
 
         # Create Recoder
         vcf_recoder = VCFRecoder(vcf_parser,
+                                 vcf_file,
                                  out_file,
                                  info_to_include = info_columns,
                                  min_call_depth = min_call_depth,
